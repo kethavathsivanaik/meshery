@@ -36,7 +36,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.49
+          version: latest
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
@@ -208,9 +208,10 @@ jobs:
       - name: Build Next App
         run: |
           cd ui
+          node --version
           npm i
-          npm run build
-          npm run export
+          cd ../
+          make build-meshery-ui
       # - name: Update /etc/hosts
       #   run: echo "127.0.0.1 mesherylocal.layer5.io" | sudo tee -a /etc/hosts
       - name: Run meshery-consul
