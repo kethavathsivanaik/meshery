@@ -1,0 +1,33 @@
+# Base image
+FROM golang:1.17.5-alpine3.15 AS builder
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the go.mod and go.sum files to the container
+COPY go.mod go.sum ./
+
+# Download the dependencies
+RUN go mod download
+
+# Copy the source code to the container
+COPY . .
+
+# Set the environment variables
+ENV KUBECONFIG=/app/meshery-kubeconfig.yaml \
+    MESHERY_UI_BIND_ADDR=0.0.0.0:9081
+
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o meshery-server cmd/server/main.go
+
+# Create a new image from scratch
+FROM alpine:3.15
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the binary from the builder image
+COPY --from=builder /app/meshery-server .
+
+# Set the entry point for the container
+ENTRYPOINT ["./meshery-server"]

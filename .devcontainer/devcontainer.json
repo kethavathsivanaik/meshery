@@ -1,0 +1,55 @@
+{
+    "name": "Meshery Dev Container",
+    "image": "docker.io/library/golang:1.16.7-alpine3.14",
+    "dockerComposeFile": "docker-compose.yml",
+    "runServices": [
+      {
+        "name": "meshery-server",
+        "image": "meshery/meshery:stable",
+        "command": "make run",
+        "env": {
+          "KUBECONFIG": "/app/meshery-kubeconfig.yaml",
+          "MESHERY_UI_BIND_ADDR": "0.0.0.0:9081"
+        },
+        "ports": [9081],
+        "mounts": ["source=${localWorkspaceFolder},target=/app,type=bind"],
+        "workspaceFolder": "/app",
+        "shutdownAction": "stopCompose"
+      },
+      {
+        "name": "meshery-ui",
+        "build": {
+          "context": "..",
+          "dockerfile": "Dockerfile.ui"
+        },
+        "command": "npm start",
+        "env": {
+          "REACT_APP_API_BASE_URL": "http://localhost:9081/api"
+        },
+        "ports": [3000],
+        "mounts": ["source=${localWorkspaceFolder}/ui,target=/app,type=bind"],
+        "workspaceFolder": "/app/ui",
+        "shutdownAction": "stopCompose"
+      }
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "ms-vscode.go",
+                "redhat.vscode-yaml",
+                "esbenp.prettier-vscode"
+              ]
+        }
+    },
+    
+    "postCreateCommand": "make setup",
+    
+    "appPort": [9081],
+    "forwardPorts": [9081, 3000],
+    "remoteUser": "vscode",
+    "mounts": [
+      "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ]
+  }
+  
